@@ -19,13 +19,13 @@ const brickGap = 2;
 const brickColor = "blue";
 let grid = new Array(brickRows * brickCols).fill(true);
 
-// grid = grid.map((brick) => {
-//   if (Math.random() < 0.5) {
-//     return (brick = true);
-//   } else {
-//     return (brick = false);
-//   }
-// });
+grid = grid.map((brick) => {
+  if (Math.random() < 0.5) {
+    return (brick = true);
+  } else {
+    return (brick = false);
+  }
+});
 
 const paddleHeight = 20;
 const paddleWidth = 170;
@@ -98,7 +98,7 @@ const createCircle = (x, y, radius, fillColor) => {
 
 const drawAll = () => {
   createRect(0, 0, canvas.width, canvas.height, "black"); // canvas
-  createCircle(ballX, ballY, 20, "white"); // ball
+  createCircle(ballX, ballY, 10, "white"); // ball
   createRect(paddleX, paddleY, paddleWidth, paddleHeight, "white"); // paddle
   drawBricks();
 
