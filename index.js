@@ -3,22 +3,25 @@ const ctx = canvas.getContext("2d");
 
 const FPS = 100;
 
-let ballX = 100;
-let ballXSpeed = 5;
-let ballY = 100;
-let ballYSpeed = 6;
-
 let mouseX = 0;
 let mouseY = 0;
 
-const brickRows = 10;
-const brickCols = 10;
-const brickHeight = 20;
-const brickWidth = 100;
-const brickGap = 2;
-const brickColor = "blue";
-let grid = new Array(brickRows * brickCols).fill(true);
+let ballX = 400;
+let ballXSpeed = 5;
+let ballY = 400;
+let ballYSpeed = 6;
 
+const paddleHeight = 20;
+const paddleWidth = 150;
+const paddleDistFromBottom = 60;
+
+const brickRows = 8;
+const brickCols = 8;
+const brickWidth = 100;
+const brickHeight = 20;
+const brickGap = 2;
+
+let grid = new Array(brickRows * brickCols).fill(true);
 grid = grid.map((brick) => {
   if (Math.random() < 0.5) {
     return (brick = true);
@@ -27,51 +30,17 @@ grid = grid.map((brick) => {
   }
 });
 
-const paddleHeight = 20;
-const paddleWidth = 170;
-const paddleDistFromBottom = 60;
-let paddleX = canvas.width / 2 - paddleWidth / 2;
+let paddleX = canvas.width / 2 + paddleWidth / 2;
 let paddleY = canvas.height - paddleDistFromBottom;
 
-window.onload = () => {
-  window.requestAnimationFrame(updateAll);
-};
-
 const updateMousePosition = (e) => {
-  let root = document.documentElement;
   let rect = canvas.getBoundingClientRect();
+  let root = document.documentElement;
 
   mouseX = e.clientX - rect.left - root.scrollLeft;
   mouseY = e.clientY - rect.top - root.scrollTop;
 
   paddleX = mouseX - paddleWidth / 2;
-};
-
-const getArrayIndex = (col, row) => {
-  return brickCols * row + col;
-};
-
-const drawBricks = () => {
-  for (let eachRow = 0; eachRow < brickRows; eachRow++) {
-    for (let eachCol = 0; eachCol < brickCols; eachCol++) {
-      let arrayIndex = getArrayIndex(eachCol, eachRow);
-
-      if (grid[arrayIndex]) {
-        createRect(
-          brickWidth * eachCol,
-          brickHeight * eachRow,
-          brickWidth - brickGap,
-          brickHeight - brickGap,
-          brickColor
-        );
-      }
-    }
-  }
-};
-
-const inspectTool = (words, x, y, fillColor) => {
-  ctx.fillStyle = fillColor;
-  ctx.fillText(words, x, y);
 };
 
 document.addEventListener("mousemove", updateMousePosition);
@@ -84,44 +53,51 @@ const updateAll = () => {
   }, 1000 / FPS);
 };
 
-const createRect = (x, y, width, height, fillColor) => {
-  ctx.fillStyle = fillColor;
-  ctx.fillRect(x, y, width, height);
+window.onload = () => {
+  window.requestAnimationFrame(updateAll);
 };
 
-const createCircle = (x, y, radius, fillColor) => {
-  ctx.beginPath();
-  ctx.arc(x, y, radius, 0, Math.PI * 2, true);
-  ctx.fillStyle = fillColor;
-  ctx.fill();
+const getArrayIndex = (row, col) => {
+  return brickRows * row + col;
+};
+
+const drawBricks = () => {
+  for (let i = 0; i < brickRows; i++) {
+    for (let j = 0; j < brickCols; j++) {
+      let arrayIndex = getArrayIndex(i, j);
+
+      if (grid[arrayIndex]) {
+        createRect(
+          brickWidth * j,
+          brickHeight * i,
+          brickWidth - brickGap,
+          brickHeight - brickGap,
+          "blue"
+        );
+      }
+    }
+  }
 };
 
 const drawAll = () => {
   createRect(0, 0, canvas.width, canvas.height, "black"); // canvas
-  createCircle(ballX, ballY, 10, "white"); // ball
   createRect(paddleX, paddleY, paddleWidth, paddleHeight, "white"); // paddle
-  drawBricks();
-
-  inspectTool(
-    `${Math.floor(mouseY / brickHeight)},${Math.floor(mouseX / brickWidth)}`,
-    mouseX,
-    mouseY,
-    "yellow"
-  );
+  drawBricks(); // bricks
+  createCircle(ballX, ballY, 10, "white"); // ball
 
   let ballBrickX = Math.floor(ballX / brickWidth);
   let ballBrickY = Math.floor(ballY / brickHeight);
-  let indexUnderBall = getArrayIndex(ballBrickX, ballBrickY);
+  let indexUnderBall = getArrayIndex(ballBrickY, ballBrickX);
 
   if (
-    ballBrickY >= 0 &&
-    ballBrickY < brickCols &&
     ballBrickX >= 0 &&
-    ballBrickX < brickRows
+    ballBrickX < brickRows &&
+    ballBrickY >= 0 &&
+    ballBrickY < brickCols
   ) {
     if (grid[indexUnderBall]) {
-      ballYSpeed *= -1;
       grid[indexUnderBall] = false;
+      ballYSpeed *= -1;
     }
   }
 };
@@ -138,22 +114,34 @@ const moveAll = () => {
     ballXSpeed *= -1;
   }
 
-  let topEdgeY = canvas.height - paddleDistFromBottom;
-  let bottomEdgeY = topEdgeY + paddleHeight;
-  let leftEdgeX = paddleX;
-  let rightEdgeX = paddleX + paddleWidth;
+  let topEdgeOfPaddleY = canvas.height - paddleDistFromBottom;
+  let bottomEdgeOfPaddleY = topEdgeOfPaddleY + paddleHeight;
+  let leftEdgeOfPaddleX = paddleX;
+  let rightEdgeOfPaddleX = paddleX + paddleWidth;
 
   if (
-    ballY > topEdgeY &&
-    ballY < bottomEdgeY &&
-    ballX > leftEdgeX &&
-    ballX < rightEdgeX
+    ballY > topEdgeOfPaddleY &&
+    ballY < bottomEdgeOfPaddleY &&
+    ballX > leftEdgeOfPaddleX &&
+    ballX < rightEdgeOfPaddleX
   ) {
     ballYSpeed *= -1;
 
     let centerOfPaddleX = paddleX + paddleWidth / 2;
-    let ballDistFromCenterOfPaddleX = ballX - centerOfPaddleX;
+    let ballDistFromCenterOfPaddle = ballX - centerOfPaddleX;
 
-    ballXSpeed = ballDistFromCenterOfPaddleX * 0.35;
+    ballXSpeed = ballDistFromCenterOfPaddle * 0.35;
   }
+};
+
+const createRect = (x, y, width, height, fillColor) => {
+  ctx.fillStyle = fillColor;
+  ctx.fillRect(x, y, width, height);
+};
+
+const createCircle = (x, y, radius, fillColor) => {
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2, true);
+  ctx.fillStyle = fillColor;
+  ctx.fill();
 };

@@ -9,8 +9,3 @@ body {
   justify-content: center;
   align-items: center;
 }
-
-#gameCanvas {
-  /* background-color: black; */
-  border: solid 2px black;
-}
